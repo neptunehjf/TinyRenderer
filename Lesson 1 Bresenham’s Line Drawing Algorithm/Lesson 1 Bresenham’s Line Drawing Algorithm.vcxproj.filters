@@ -21,9 +21,18 @@
     <ClCompile Include="..\Dependency\tgaimage.cpp">
       <Filter>Dependency</Filter>
     </ClCompile>
+    <ClCompile Include="..\Dependency\model.cpp">
+      <Filter>Dependency</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Dependency\tgaimage.h">
+      <Filter>Dependency</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dependency\geometry.h">
+      <Filter>Dependency</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dependency\model.h">
       <Filter>Dependency</Filter>
     </ClInclude>
   </ItemGroup>
