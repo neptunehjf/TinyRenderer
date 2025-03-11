@@ -1,6 +1,7 @@
 #include "tgaimage.h"
 #include "geometry.h"
 #include "model.h"
+#include "math.h"
 
 const TGAColor white = TGAColor(255, 255, 255, 255);
 const TGAColor red   = TGAColor(255, 0,   0,   255);
@@ -94,6 +95,55 @@ void triangle_line_scan(Vec2i t0, Vec2i t1, Vec2i t2, TGAImage& image, TGAColor 
 	}
 }
 
+// 求重心坐标系数
+// 参考Referrence/barycentric coordinates.jpg
+Vec3f barycentric(Vec2i* pts, Vec2i P) 
+{
+	// 重心坐标向量t
+	Vec3f t = Vec3f(pts[2].x - pts[0].x, pts[1].x - pts[0].x, pts[0].x - P.x) ^
+		      Vec3f(pts[2].y - pts[0].y, pts[1].y - pts[0].y, pts[0].y - P.y);
+	// 因为t.z = 2 * 三角形面积，小于等于0说明是退化三角形。
+	// 又因为精度原因，取一个阈值1
+	// 如果是退化三角形，则返回带负值的重心坐标系数，因为重心坐标系数小于0的时候说明点不在三角形内部，绘制时舍弃
+	if (abs(t.z) < 1) return Vec3f(-1, -1, -1);
+
+	// 根据向量t返回重心坐标系数
+	return Vec3f(1.0 - (t.x + t.y) / t.z, t.y / t.z, t.x / t.z);
+}
+
+// barycentric方式画填充三角形
+// barycentric方式需要和bbox结合起来，否则效率太低
+void triangle_barycentric(Vec2i* pts, TGAImage& image, TGAColor color)
+{
+	// 初始bbox为空
+	Vec2i bboxmin(image.get_width() - 1, image.get_height() - 1);
+	Vec2i bboxmax(0, 0);
+
+	Vec2i clamp(image.get_width() - 1, image.get_height() - 1);
+
+	// 计算bbox
+	for (int i = 0; i < 3; i++) 
+	{
+		bboxmin.x = max(0, min(bboxmin.x, pts[i].x));
+		bboxmin.y = max(0, min(bboxmin.y, pts[i].y));
+
+		bboxmax.x = min(clamp.x, max(bboxmax.x, pts[i].x));
+		bboxmax.y = min(clamp.y, max(bboxmax.y, pts[i].y));
+	}
+
+	// 遍历bbox内的所有像素，barycentric方式判断，如果在三角形内部就渲染，否则不渲染
+	Vec2i P;
+	for (P.x = bboxmin.x; P.x <= bboxmax.x; P.x++) 
+	{
+		for (P.y = bboxmin.y; P.y <= bboxmax.y; P.y++) 
+		{
+			Vec3f bc_screen = barycentric(pts, P);
+			if (bc_screen.x < 0 || bc_screen.y < 0 || bc_screen.z < 0) continue;
+			image.set(P.x, P.y, color);
+		}
+	}
+}
+
 int main(int argc, char** argv) 
 {
 	//if (2 == argc) 
@@ -111,9 +161,9 @@ int main(int argc, char** argv)
 	Vec2i t1[3] = { Vec2i(180, 50),  Vec2i(150, 1),   Vec2i(70, 180) };
 	Vec2i t2[3] = { Vec2i(180, 150), Vec2i(120, 160), Vec2i(130, 180) };
 
-	triangle_line_scan(t0[0], t0[1], t0[2], image, red);
-	triangle_line_scan(t1[0], t1[1], t1[2], image, white);
-	triangle_line_scan(t2[0], t2[1], t2[2], image, green);
+	triangle_barycentric(t0, image, red);
+	triangle_barycentric(t1, image, white);
+	triangle_barycentric(t2, image, green);
 
 	//for (int i = 0; i < model->nfaces(); i++) 
 	//{
