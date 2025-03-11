@@ -3,14 +3,19 @@
 #include "model.h"
 #include "math.h"
 
+using namespace std;
+
 const TGAColor white = TGAColor(255, 255, 255, 255);
 const TGAColor red   = TGAColor(255, 0,   0,   255);
 const TGAColor green = TGAColor(0, 255, 0, 255);
 Model* model = NULL;
-const int width = 200;
-const int height = 200;
+const int width = 800;
+const int height = 800;
 
-using namespace std;
+// 光线垂直射入屏幕里
+Vec3f light_dir(0, 0, -1);
+
+
 
 // Bresenham算法画直线
 // 把除法从循环里拿出来了，并且消除了float计算。理论上速度更快
@@ -146,14 +151,14 @@ void triangle_barycentric(Vec2i* pts, TGAImage& image, TGAColor color)
 
 int main(int argc, char** argv) 
 {
-	//if (2 == argc) 
-	//{
-	//	model = new Model(argv[1]);
-	//}
-	//else 
-	//{
-	//	model = new Model("obj/african_head.obj");
-	//}
+	if (2 == argc) 
+	{
+		model = new Model(argv[1]);
+	}
+	else 
+	{
+		model = new Model("obj/african_head.obj");
+	}
 
 	TGAImage image(width, height, TGAImage::RGB);
 
@@ -161,27 +166,30 @@ int main(int argc, char** argv)
 	Vec2i t1[3] = { Vec2i(180, 50),  Vec2i(150, 1),   Vec2i(70, 180) };
 	Vec2i t2[3] = { Vec2i(180, 150), Vec2i(120, 160), Vec2i(130, 180) };
 
-	triangle_barycentric(t0, image, red);
-	triangle_barycentric(t1, image, white);
-	triangle_barycentric(t2, image, green);
-
-	//for (int i = 0; i < model->nfaces(); i++) 
-	//{
-	//	std::vector<int> face = model->face(i);
-	//	for (int j = 0; j < 3; j++) 
-	//	{
-	//		Vec3f v0 = model->vert(face[j]);
-	//		Vec3f v1 = model->vert(face[(j + 1) % 3]);
-	//		int x0 = (v0.x + 1.) * width / 2.;
-	//		int y0 = (v0.y + 1.) * height / 2.;
-	//		int x1 = (v1.x + 1.) * width / 2.;
-	//		int y1 = (v1.y + 1.) * height / 2.;
-	//		line(x0, y0, x1, y1, image, white);
-	//	}
-	//}
+	for (int i = 0; i < model->nfaces(); i++) 
+	{
+		vector<int> face = model->face(i);
+		Vec2i screen_coords[3];
+		Vec3f world_coords[3];
+		for (int j = 0; j < 3; j++) 
+		{
+			Vec3f v = model->vert(face[j]);
+			screen_coords[j] = Vec2i((v.x + 1.) * width / 2., (v.y + 1.) * height / 2.);
+			world_coords[j] = v;
+		}
+		// 通过三角形表面法线和光线夹角计算光照强弱
+		// intensity < 0 说明光线来自物体内部，此时不绘制，是一种简单的面剔除，但是依赖于法线方向，不能完全剔除所有面
+		Vec3f n = (world_coords[2] - world_coords[0]) ^ (world_coords[1] - world_coords[0]);
+		n.normalize();
+		float intensity = n * light_dir;
+		if (intensity > 0) 
+		{
+			triangle_barycentric(screen_coords, image, TGAColor(intensity * 255, intensity * 255, intensity * 255, 255));
+		}
+	}
 
 	image.flip_vertically(); // i want to have the origin at the left bottom corner of the image
-	image.write_tga_file("output.tga");
+	image.write_tga_file("head_triangles_light.tga");
 	delete model;
 
 	return 0;
