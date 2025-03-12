@@ -174,7 +174,7 @@ int main(int argc, char** argv)
 		for (int j = 0; j < 3; j++) 
 		{
 			Vec3f v = model->vert(face[j]);
-			screen_coords[j] = Vec3f(int((v.x + 1.) * width / 2. + .5), int((v.y + 1.) * height / 2. + .5), v.z);
+			screen_coords[j] = Vec2i(int((v.x + 1.) * width / 2. + .5), int((v.y + 1.) * height / 2. + .5));
 			world_coords[j] = v;
 		}
 		// 通过三角形表面法线和光线夹角计算光照强弱
