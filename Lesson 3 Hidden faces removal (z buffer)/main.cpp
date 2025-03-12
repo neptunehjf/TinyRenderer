@@ -1,7 +1,9 @@
 #include "tgaimage.h"
 #include "geometry.h"
 #include "model.h"
-#include "math.h"
+#include <math.h>
+#include <limits.h>
+
 
 using namespace std;
 
@@ -15,13 +17,11 @@ const int height = 800;
 // 光线垂直射入屏幕里
 Vec3f light_dir(0, 0, -1);
 
-
-
 // Bresenham算法画直线
 // 把除法从循环里拿出来了，并且消除了float计算。理论上速度更快
 // 虽然有些微优化，并没有教程中那么明显，可能是编译器不一样(MSVC vs GCC)？
 // 参考Referrence/Bresenham Algorithm.jpg
-void line(int x0, int y0, int x1, int y1, TGAImage& image,const TGAColor& color)
+void line(int x0, int y0, int x1, int y1, TGAImage& image, const TGAColor& color)
 {
 
 	// 1 消除斜率的影响
@@ -58,7 +58,7 @@ void line(int x0, int y0, int x1, int y1, TGAImage& image,const TGAColor& color)
 			image.set(x, y, color);
 
 		e += de;
-		
+
 		if (e > dx)
 		{
 			y += (y0 < y1 ? 1 : -1); // 根据y的沿伸方向加1或减1
@@ -68,41 +68,9 @@ void line(int x0, int y0, int x1, int y1, TGAImage& image,const TGAColor& color)
 	}
 }
 
-// 线扫描法画填充三角形
-// 1 把三角形分为左右两条边A,B，注意B分为上下两部分
-// 2 根据y方向的变化率线性计算出A.x B.x
-// 3 根据从A.x B.x逐行从左向右画线
-void triangle_line_scan(Vec2i t0, Vec2i t1, Vec2i t2, TGAImage& image, TGAColor color)
-{
-	// 退化三角形不处理
-	if (t0.x == t1.x && t0.x == t2.x || t0.y == t1.y && t0.y == t2.y) return;
-
-	// 冒泡排序，使t0 t1 t2按y轴从小到大的顺序排序
-	if (t0.y > t1.y) swap(t0, t1);
-	if (t0.y > t2.y) swap(t0, t2);
-	if (t1.y > t2.y) swap(t1, t2);
-
-	// 总扫描行数
-	int total_line = t2.y - t0.y;
-
-	// 逐行扫描
-	for (int i = 0; i <= total_line; i++)
-	{
-		bool upper_half = i > t1.y - t0.y || t0.y == t1.y;	// 是否是B边界的上半部分
-		int segment_line = upper_half ? (t2.y - t1.y) : (t1.y - t0.y);
-		float alpha = (float)i / total_line;
-		float beta = (float)(i - (upper_half ? (t1.y - t0.y) : 0)) / segment_line;
-		Vec2i A = t0 + (t2 - t0) * alpha;
-		Vec2i B = upper_half ? (t1 + (t2 - t1) * beta) : (t0 + (t1 - t0) * beta);
-		if (A.x > B.x) swap(A, B); // 边界A在左，B在右
-		for (int j = A.x; j <= B.x; j++)
-			image.set(j, t0.y + i, color);
-	}
-}
-
 // 求重心坐标系数
 // 参考Referrence/barycentric coordinates.jpg
-Vec3f barycentric(Vec2i* pts, Vec2i P) 
+Vec3f barycentric(Vec3f* pts, Vec3f P) 
 {
 	// 重心坐标向量t
 	Vec3f t = Vec3f(pts[2].x - pts[0].x, pts[1].x - pts[0].x, pts[0].x - P.x) ^
@@ -118,33 +86,43 @@ Vec3f barycentric(Vec2i* pts, Vec2i P)
 
 // barycentric方式画填充三角形
 // barycentric方式需要和bbox结合起来，否则效率太低
-void triangle_barycentric(Vec2i* pts, TGAImage& image, TGAColor color)
+void triangle(Vec3f* pts, float* zbuffer, TGAImage& image, TGAColor color)
 {
 	// 初始bbox为空
-	Vec2i bboxmin(image.get_width() - 1, image.get_height() - 1);
-	Vec2i bboxmax(0, 0);
+	Vec2f bboxmin(numeric_limits<float>::max(), numeric_limits<float>::max());
+	Vec2f bboxmax(-numeric_limits<float>::max(), -numeric_limits<float>::max());
 
-	Vec2i clamp(image.get_width() - 1, image.get_height() - 1);
+	Vec2f clamp(image.get_width() - 1, image.get_height() - 1);
 
 	// 计算bbox
 	for (int i = 0; i < 3; i++) 
 	{
-		bboxmin.x = max(0, min(bboxmin.x, pts[i].x));
-		bboxmin.y = max(0, min(bboxmin.y, pts[i].y));
+		bboxmin.x = max(0.0f, min(bboxmin.x, pts[i].x));
+		bboxmin.y = max(0.0f, min(bboxmin.y, pts[i].y));
 
 		bboxmax.x = min(clamp.x, max(bboxmax.x, pts[i].x));
 		bboxmax.y = min(clamp.y, max(bboxmax.y, pts[i].y));
 	}
 
 	// 遍历bbox内的所有像素，barycentric方式判断，如果在三角形内部就渲染，否则不渲染
-	Vec2i P;
+	Vec3f P;
 	for (P.x = bboxmin.x; P.x <= bboxmax.x; P.x++) 
 	{
 		for (P.y = bboxmin.y; P.y <= bboxmax.y; P.y++) 
 		{
-			Vec3f bc_screen = barycentric(pts, P);
-			if (bc_screen.x < 0 || bc_screen.y < 0 || bc_screen.z < 0) continue;
-			image.set(P.x, P.y, color);
+			Vec3f bc_screen = barycentric(pts, P); // 重心坐标系数
+			if (bc_screen.x < 0 || bc_screen.y < 0 || bc_screen.z < 0)
+				continue;
+			// 根据重心坐标，用插值法算出三角形任意一个像素的深度z
+			P.z = bc_screen.x * pts[0].z + bc_screen.y * pts[1].z + bc_screen.z * pts[2].z;
+
+			// 如果当前像素的深度值大于zbuffer，则绘制当前像素并更新zbuffer
+			if (zbuffer[int(P.x + P.y * width)] < P.z)
+			{
+				zbuffer[int(P.x + P.y * width)] = P.z;
+				image.set(P.x, P.y, color);
+			}
+			
 		}
 	}
 }
@@ -166,15 +144,22 @@ int main(int argc, char** argv)
 	Vec2i t1[3] = { Vec2i(180, 50),  Vec2i(150, 1),   Vec2i(70, 180) };
 	Vec2i t2[3] = { Vec2i(180, 150), Vec2i(120, 160), Vec2i(130, 180) };
 
+	float* zbuffer = new float[height * width];
+	for (int i = 0; i < width * height; i++)
+		zbuffer[i] = -numeric_limits<float>::max();
+
 	for (int i = 0; i < model->nfaces(); i++) 
 	{
 		vector<int> face = model->face(i);
-		Vec2i screen_coords[3];
+		Vec3f screen_coords[3];
 		Vec3f world_coords[3];
 		for (int j = 0; j < 3; j++) 
 		{
+			// x[-1,1] y[-1,1] z[-1,1]
 			Vec3f v = model->vert(face[j]);
-			screen_coords[j] = Vec2i((v.x + 1.) * width / 2., (v.y + 1.) * height / 2.);
+			// x[0, width] y[0, height] z[-1,1]
+			// +0.5四舍五入
+			screen_coords[j] = Vec3f(int((v.x + 1.) * width / 2. + .5), int((v.y + 1.) * height / 2. + .5), v.z);
 			world_coords[j] = v;
 		}
 		// 通过三角形表面法线和光线夹角计算光照强弱
@@ -184,13 +169,14 @@ int main(int argc, char** argv)
 		float intensity = n * light_dir;
 		if (intensity > 0) 
 		{
-			triangle_barycentric(screen_coords, image, TGAColor(intensity * 255, intensity * 255, intensity * 255, 255));
+			triangle(screen_coords, zbuffer, image, TGAColor(intensity * 255, intensity * 255, intensity * 255, 255));
 		}
 	}
 
 	image.flip_vertically(); // i want to have the origin at the left bottom corner of the image
-	image.write_tga_file("head_triangles_light.tga");
+	image.write_tga_file("head_with_zbuffer.tga");
 	delete model;
+	delete[] zbuffer;
 
 	return 0;
 }
