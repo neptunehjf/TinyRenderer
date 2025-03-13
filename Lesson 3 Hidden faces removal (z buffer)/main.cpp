@@ -10,7 +10,7 @@ using namespace std;
 const TGAColor white = TGAColor(255, 255, 255, 255);
 const TGAColor red   = TGAColor(255, 0,   0,   255);
 const TGAColor green = TGAColor(0, 255, 0, 255);
-Model* model = NULL;
+
 const int width = 800;
 const int height = 800;
 
@@ -86,7 +86,7 @@ Vec3f barycentric(Vec3f* pts, Vec3f P)
 
 // barycentric方式画填充三角形
 // barycentric方式需要和bbox结合起来，否则效率太低
-void triangle(Vec3f* pts, float* zbuffer, TGAImage& image, TGAColor color)
+void triangle(Vec3f* verts, Vec2f* texs, float* zbuffer, TGAImage& texture, TGAImage& image, TGAColor color)
 {
 	// 初始bbox为空
 	Vec2f bboxmin(numeric_limits<float>::max(), numeric_limits<float>::max());
@@ -97,52 +97,68 @@ void triangle(Vec3f* pts, float* zbuffer, TGAImage& image, TGAColor color)
 	// 计算bbox
 	for (int i = 0; i < 3; i++) 
 	{
-		bboxmin.x = max(0.0f, min(bboxmin.x, pts[i].x));
-		bboxmin.y = max(0.0f, min(bboxmin.y, pts[i].y));
+		bboxmin.x = max(0.0f, min(bboxmin.x, verts[i].x));
+		bboxmin.y = max(0.0f, min(bboxmin.y, verts[i].y));
 
-		bboxmax.x = min(clamp.x, max(bboxmax.x, pts[i].x));
-		bboxmax.y = min(clamp.y, max(bboxmax.y, pts[i].y));
+		bboxmax.x = min(clamp.x, max(bboxmax.x, verts[i].x));
+		bboxmax.y = min(clamp.y, max(bboxmax.y, verts[i].y));
 	}
 
 	// 遍历bbox内的所有像素，barycentric方式判断，如果在三角形内部就渲染，否则不渲染
 	Vec3f P;
+	Vec2f tex_uv;
+	Vec2i tex_coord;
+
 	for (P.x = bboxmin.x; P.x <= bboxmax.x; P.x++) 
 	{
 		for (P.y = bboxmin.y; P.y <= bboxmax.y; P.y++) 
 		{
-			Vec3f bc_screen = barycentric(pts, P); // 重心坐标系数
+			Vec3f bc_screen = barycentric(verts, P); // 重心坐标系数
 			if (bc_screen.x < 0 || bc_screen.y < 0 || bc_screen.z < 0)
 				continue;
 			// 根据重心坐标，用插值法算出三角形任意一个像素的深度z
-			P.z = bc_screen.x * pts[0].z + bc_screen.y * pts[1].z + bc_screen.z * pts[2].z;
+			P.z = bc_screen.x * verts[0].z + bc_screen.y * verts[1].z + bc_screen.z * verts[2].z;
+			// 根据重心坐标，用插值法算出三角形任意一个像素的UV坐标
+			tex_uv.x = bc_screen.x * texs[0].x + bc_screen.y * texs[1].x + bc_screen.z * texs[2].x;
+			tex_uv.y = bc_screen.x * texs[0].y + bc_screen.y * texs[1].y + bc_screen.z * texs[2].y;
+			
+			// UV映射
+			tex_coord.x = tex_uv.x * texture.get_width();
+			tex_coord.y = tex_uv.y * texture.get_height();
 
 			// 如果当前像素的深度值大于zbuffer，则绘制当前像素并更新zbuffer
 			if (zbuffer[int(P.x + P.y * width)] < P.z)
 			{
 				zbuffer[int(P.x + P.y * width)] = P.z;
-				image.set(P.x, P.y, color);
-			}
-			
+				image.set(P.x, P.y, texture.get(tex_coord.x, tex_coord.y));
+			}	
 		}
 	}
 }
 
 int main(int argc, char** argv) 
 {
-	if (2 == argc) 
-	{
-		model = new Model(argv[1]);
-	}
-	else 
-	{
-		model = new Model("obj/african_head.obj");
-	}
+	Model* model = new Model("obj/african_head.obj");
 
-	TGAImage image(width, height, TGAImage::RGB);
+	TGAImage head_texture(1024, 1024, TGAImage::RGB);
+	head_texture.read_tga_file("obj/african_head_diffuse.tga");
+	head_texture.flip_vertically();
 
-	Vec2i t0[3] = { Vec2i(10, 70),   Vec2i(50, 160),  Vec2i(70, 80) };
-	Vec2i t1[3] = { Vec2i(180, 50),  Vec2i(150, 1),   Vec2i(70, 180) };
-	Vec2i t2[3] = { Vec2i(180, 150), Vec2i(120, 160), Vec2i(130, 180) };
+	//output
+	TGAImage image(800, 800, TGAImage::RGB);
+
+	/**************** debug ***************/ 
+	//for (int i = 0; i < head_texture.get_height(); i++)
+	//	for (int j = 0; j < head_texture.get_width(); j++)
+	//	{
+	//		image.set(i, j, head_texture.get(i, j));
+	//	}
+
+	////image.flip_vertically(); // i want to have the origin at the left bottom corner of the image
+	//image.write_tga_file("texture_test.tga");
+
+	//return 0;
+	/**************** debug ***************/
 
 	float* zbuffer = new float[height * width];
 	for (int i = 0; i < width * height; i++)
@@ -151,8 +167,10 @@ int main(int argc, char** argv)
 	for (int i = 0; i < model->nfaces(); i++) 
 	{
 		vector<int> face = model->face(i);
+		vector<int> face_uv = model->face_uv(i);
 		Vec3f screen_coords[3];
 		Vec3f world_coords[3];
+		Vec2f texture_coords[3];
 		for (int j = 0; j < 3; j++) 
 		{
 			// x[-1,1] y[-1,1] z[-1,1]
@@ -161,6 +179,7 @@ int main(int argc, char** argv)
 			// +0.5四舍五入
 			screen_coords[j] = Vec3f(int((v.x + 1.) * width / 2. + .5), int((v.y + 1.) * height / 2. + .5), v.z);
 			world_coords[j] = v;
+			texture_coords[j] = model->uv(face_uv[j]);
 		}
 		// 通过三角形表面法线和光线夹角计算光照强弱
 		// intensity < 0 说明光线来自物体内部，此时不绘制，是一种简单的面剔除，但是依赖于法线方向，不能完全剔除所有面
@@ -169,12 +188,12 @@ int main(int argc, char** argv)
 		float intensity = n * light_dir;
 		if (intensity > 0) 
 		{
-			triangle(screen_coords, zbuffer, image, TGAColor(intensity * 255, intensity * 255, intensity * 255, 255));
+			triangle(screen_coords, texture_coords, zbuffer, head_texture, image, TGAColor());
 		}
 	}
 
 	image.flip_vertically(); // i want to have the origin at the left bottom corner of the image
-	image.write_tga_file("head_with_zbuffer.tga");
+	image.write_tga_file("head_with_texture.tga");
 	delete model;
 	delete[] zbuffer;
 
