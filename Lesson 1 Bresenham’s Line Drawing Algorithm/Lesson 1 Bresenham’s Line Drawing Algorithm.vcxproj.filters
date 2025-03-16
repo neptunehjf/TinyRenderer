@@ -9,7 +9,7 @@
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
     </Filter>
-    <Filter Include="Dependency">
+    <Filter Include="Dependency Files">
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
@@ -18,22 +18,22 @@
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\Dependency\tgaimage.cpp">
-      <Filter>Dependency</Filter>
+    <ClCompile Include="model.cpp">
+      <Filter>Dependency Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\Dependency\model.cpp">
-      <Filter>Dependency</Filter>
+    <ClCompile Include="tgaimage.cpp">
+      <Filter>Dependency Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\Dependency\tgaimage.h">
-      <Filter>Dependency</Filter>
+    <ClInclude Include="geometry.h">
+      <Filter>Dependency Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\Dependency\geometry.h">
-      <Filter>Dependency</Filter>
+    <ClInclude Include="model.h">
+      <Filter>Dependency Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\Dependency\model.h">
-      <Filter>Dependency</Filter>
+    <ClInclude Include="tgaimage.h">
+      <Filter>Dependency Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

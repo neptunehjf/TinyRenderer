@@ -164,33 +164,33 @@ int main(int argc, char** argv)
 	for (int i = 0; i < width * height; i++)
 		zbuffer[i] = -numeric_limits<float>::max();
 
-	for (int i = 0; i < model->nfaces(); i++) 
-	{
-		vector<int> face = model->face(i);
-		vector<int> face_uv = model->face_uv(i);
-		Vec3f screen_coords[3];
-		Vec3f world_coords[3];
-		Vec2f texture_coords[3];
-		for (int j = 0; j < 3; j++) 
-		{
-			// x[-1,1] y[-1,1] z[-1,1]
-			Vec3f v = model->vert(face[j]);
-			// x[0, width] y[0, height] z[-1,1]
-			// +0.5四舍五入
-			screen_coords[j] = Vec3f(int((v.x + 1.) * width / 2. + .5), int((v.y + 1.) * height / 2. + .5), v.z);
-			world_coords[j] = v;
-			texture_coords[j] = model->uv(face_uv[j]);
-		}
-		// 通过三角形表面法线和光线夹角计算光照强弱
-		// intensity < 0 说明光线来自物体内部，此时不绘制，是一种简单的面剔除，但是依赖于法线方向，不能完全剔除所有面
-		Vec3f n = (world_coords[2] - world_coords[0]) ^ (world_coords[1] - world_coords[0]);
-		n.normalize();
-		float intensity = n * light_dir;
-		if (intensity > 0) 
-		{
-			triangle(screen_coords, texture_coords, zbuffer, head_texture, image, TGAColor());
-		}
-	}
+	//for (int i = 0; i < model->nfaces(); i++) 
+	//{
+	//	vector<int> face = model->face(i);
+	//	vector<int> face_uv = model->face_uv(i);
+	//	Vec3f screen_coords[3];
+	//	Vec3f world_coords[3];
+	//	Vec2f texture_coords[3];
+	//	for (int j = 0; j < 3; j++) 
+	//	{
+	//		// x[-1,1] y[-1,1] z[-1,1]
+	//		Vec3f v = model->vert(face[j]);
+	//		// x[0, width] y[0, height] z[-1,1]
+	//		// +0.5四舍五入
+	//		screen_coords[j] = Vec3f(int((v.x + 1.) * width / 2. + .5), int((v.y + 1.) * height / 2. + .5), v.z);
+	//		world_coords[j] = v;
+	//		texture_coords[j] = model->uv(face_uv[j]);
+	//	}
+	//	// 通过三角形表面法线和光线夹角计算光照强弱
+	//	// intensity < 0 说明光线来自物体内部，此时不绘制，是一种简单的面剔除，但是依赖于法线方向，不能完全剔除所有面
+	//	Vec3f n = (world_coords[2] - world_coords[0]) ^ (world_coords[1] - world_coords[0]);
+	//	n.normalize();
+	//	float intensity = n * light_dir;
+	//	if (intensity > 0) 
+	//	{
+	//		triangle(screen_coords, texture_coords, zbuffer, head_texture, image, TGAColor());
+	//	}
+	//}
 
 	image.flip_vertically(); // i want to have the origin at the left bottom corner of the image
 	image.write_tga_file("head_with_texture.tga");

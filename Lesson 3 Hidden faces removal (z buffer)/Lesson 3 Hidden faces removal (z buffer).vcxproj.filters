@@ -18,21 +18,21 @@
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\Dependency\model.cpp">
+    <ClCompile Include="model.cpp">
       <Filter>Dependency Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\Dependency\tgaimage.cpp">
+    <ClCompile Include="tgaimage.cpp">
       <Filter>Dependency Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\Dependency\geometry.h">
+    <ClInclude Include="geometry.h">
       <Filter>Dependency Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\Dependency\model.h">
+    <ClInclude Include="model.h">
       <Filter>Dependency Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\Dependency\tgaimage.h">
+    <ClInclude Include="tgaimage.h">
       <Filter>Dependency Files</Filter>
     </ClInclude>
   </ItemGroup>
