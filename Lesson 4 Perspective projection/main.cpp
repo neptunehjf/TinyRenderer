@@ -1,18 +1,22 @@
+#include <vector>
+#include <cmath>
+#include <limits>
 #include "tgaimage.h"
-#include "geometry.h"
 #include "model.h"
-#include <math.h>
-#include <limits.h>
+#include "geometry.h"
 
 
 using namespace std;
 
 const TGAColor white = TGAColor(255, 255, 255, 255);
-const TGAColor red   = TGAColor(255, 0,   0,   255);
+const TGAColor red = TGAColor(255, 0, 0, 255);
 const TGAColor green = TGAColor(0, 255, 0, 255);
+const TGAColor blue = TGAColor(0, 0, 255, 255);
+const TGAColor yellow = TGAColor(255, 255, 0, 255);
 
 const int width = 800;
 const int height = 800;
+const int depth = 255;
 
 // 光线垂直射入屏幕里
 Vec3f light_dir(0, 0, -1);
@@ -21,7 +25,7 @@ Vec3f light_dir(0, 0, -1);
 // 把除法从循环里拿出来了，并且消除了float计算。理论上速度更快
 // 虽然有些微优化，并没有教程中那么明显，可能是编译器不一样(MSVC vs GCC)？
 // 参考Referrence/Bresenham Algorithm.jpg
-void line(int x0, int y0, int x1, int y1, TGAImage& image, const TGAColor& color)
+void line2D(int x0, int y0, int x1, int y1, TGAImage& image, const TGAColor& color)
 {
 
 	// 1 消除斜率的影响
@@ -64,6 +68,30 @@ void line(int x0, int y0, int x1, int y1, TGAImage& image, const TGAColor& color
 			y += (y0 < y1 ? 1 : -1); // 根据y的沿伸方向加1或减1
 			e -= 2 * dx; //因为y的增量有可能不到1，这里计算补正量。比如y增量是0.6>0.5，于是y加1，
 			//实际多增加了1 - 0.6 = 0.4，所以补正量是-0.4，要加到下一次的增量计算里
+		}
+	}
+}
+
+void line(Vec3i p0, Vec3i p1, TGAImage& image, TGAColor color) 
+{
+	bool steep = false;
+	if (std::abs(p0.x - p1.x) < std::abs(p0.y - p1.y)) {
+		std::swap(p0.x, p0.y);
+		std::swap(p1.x, p1.y);
+		steep = true;
+	}
+	if (p0.x > p1.x) {
+		std::swap(p0, p1);
+	}
+
+	for (int x = p0.x; x <= p1.x; x++) {
+		float t = (x - p0.x) / (float)(p1.x - p0.x);
+		int y = p0.y * (1. - t) + p1.y * t + .5;
+		if (steep) {
+			image.set(y, x, color);
+		}
+		else {
+			image.set(x, y, color);
 		}
 	}
 }
@@ -136,16 +164,84 @@ void triangle(Vec3f* verts, Vec2f* texs, float* zbuffer, TGAImage& texture, TGAI
 	}
 }
 
+// 矩阵变换，参照Referrence/Transformation.jpg
+/******************* 矩阵变换 *******************/
+// 缩放
+Matrix scale(Vec3f t)
+{
+	Matrix S = Matrix::identity(4);
+	S[0][0] = t[0];
+	S[1][1] = t[1];
+	S[2][2] = t[2];
+
+	return S;
+}
+
+// 切变，3D的话参数有点复杂，这里为了做实验就只实现2D的了
+Matrix shear2D(Vec2f t)
+{
+	Matrix SH = Matrix::identity(3);
+	SH[0][1] = t[0];
+	SH[1][0] = t[1];
+
+	return SH;
+}
+
+// 旋转，可以看作在x,y,z轴上旋转的叠加
+// 提前计算好cosangle sinangle效率更高
+Matrix rotation_x(float cosangle, float sinangle)
+{
+	Matrix R = Matrix::identity(4);
+
+	R[1][1] = R[2][2] = cosangle;
+	R[1][2] = -sinangle;
+	R[2][1] = sinangle;
+
+	return R;
+}
+
+Matrix rotation_y(float cosangle, float sinangle) 
+{
+	Matrix R = Matrix::identity(4);
+	R[0][0] = R[2][2] = cosangle;
+	R[0][2] = sinangle;
+	R[2][0] = -sinangle;
+
+	return R;
+}
+
+Matrix rotation_z(float cosangle, float sinangle) 
+{
+	Matrix R = Matrix::identity(4);
+	R[0][0] = R[1][1] = cosangle;
+	R[0][1] = -sinangle;
+	R[1][0] = sinangle;
+
+	return R;
+}
+
+// 位移
+Matrix translate(Vec3f t)
+{
+	Matrix T = Matrix::identity(4);
+	T[3][0] = t[0];
+	T[3][1] = t[1];
+	T[3][2] = t[2];
+
+	return T;
+}
+/******************* 矩阵变换 *******************/
+
 int main(int argc, char** argv) 
 {
-	Model* model = new Model("obj/african_head.obj");
+	//Model* model = new Model("obj/african_head.obj");
 
-	TGAImage head_texture(1024, 1024, TGAImage::RGB);
-	head_texture.read_tga_file("obj/african_head_diffuse.tga");
-	head_texture.flip_vertically();
+	//TGAImage head_texture(1024, 1024, TGAImage::RGB);
+	//head_texture.read_tga_file("obj/african_head_diffuse.tga");
+	//head_texture.flip_vertically();
 
 	//output
-	TGAImage image(800, 800, TGAImage::RGB);
+	TGAImage image(width, height, TGAImage::RGB);
 
 	/**************** debug ***************/ 
 	//for (int i = 0; i < head_texture.get_height(); i++)
@@ -160,43 +256,9 @@ int main(int argc, char** argv)
 	//return 0;
 	/**************** debug ***************/
 
-	float* zbuffer = new float[height * width];
-	for (int i = 0; i < width * height; i++)
-		zbuffer[i] = -numeric_limits<float>::max();
-
-	//for (int i = 0; i < model->nfaces(); i++) 
-	//{
-	//	vector<int> face = model->face(i);
-	//	vector<int> face_uv = model->face_uv(i);
-	//	Vec3f screen_coords[3];
-	//	Vec3f world_coords[3];
-	//	Vec2f texture_coords[3];
-	//	for (int j = 0; j < 3; j++) 
-	//	{
-	//		// x[-1,1] y[-1,1] z[-1,1]
-	//		Vec3f v = model->vert(face[j]);
-	//		// x[0, width] y[0, height] z[-1,1]
-	//		// +0.5四舍五入
-	//		screen_coords[j] = Vec3f(int((v.x + 1.) * width / 2. + .5), int((v.y + 1.) * height / 2. + .5), v.z);
-	//		world_coords[j] = v;
-	//		texture_coords[j] = model->uv(face_uv[j]);
-	//	}
-	//	// 通过三角形表面法线和光线夹角计算光照强弱
-	//	// intensity < 0 说明光线来自物体内部，此时不绘制，是一种简单的面剔除，但是依赖于法线方向，不能完全剔除所有面
-	//	Vec3f n = (world_coords[2] - world_coords[0]) ^ (world_coords[1] - world_coords[0]);
-	//	n.normalize();
-	//	float intensity = n * light_dir;
-	//	if (intensity > 0) 
-	//	{
-	//		triangle(screen_coords, texture_coords, zbuffer, head_texture, image, TGAColor());
-	//	}
-	//}
-
 	image.flip_vertically(); // i want to have the origin at the left bottom corner of the image
-	image.write_tga_file("head_with_texture.tga");
-	delete model;
-	delete[] zbuffer;
-
+	image.write_tga_file("output.tga");
+	//delete model;
 	return 0;
 }
 

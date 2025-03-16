@@ -29,9 +29,9 @@ template <class t> struct Vec2 {
 
 template <class t> struct Vec3 {
     t raw[3];
-    t& x;
-    t& y;
-    t& z;
+    t x;
+    t y;
+    t z;
     Vec3<t>() : raw(), x(raw[0]), y(raw[1]), z(raw[2]) { x = y = z = t(); }
     Vec3<t>(t _x, t _y, t _z) : raw(), x(raw[0]), y(raw[1]), z(raw[2]) { x=_x; y=_y; z=_z; }
     template <class u> Vec3<t>(const Vec3<u> &v);
