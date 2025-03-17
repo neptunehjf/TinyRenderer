@@ -230,6 +230,41 @@ Matrix translate(Vec3f t)
 
 	return T;
 }
+
+// lookat
+//先相对相机向反方向位移，然后坐标系转换到相机空间
+Matrix lookat(Vec3f cam, Vec3f origin, Vec3f up)
+{
+	Vec3f z = (cam - origin).normalize();
+	Vec3f x = (up ^ z).normalize();
+	Vec3f y = (z ^ x).normalize();
+	Matrix cam_space = Matrix::identity(4);
+	Matrix T = Matrix::identity(4);
+	for (int i = 0; i < 3; i++) 
+	{
+		cam_space[0][i] = x[i];
+		cam_space[1][i] = y[i];
+		cam_space[2][i] = z[i];
+		T[i][3] = -cam[i];
+	}
+	return cam_space * T;
+}
+
+// viewport
+// [-1,1] => [x+w, y+h]
+Matrix viewport(int x, int y, int w, int h) 
+{
+	Matrix m = Matrix::identity(4);
+	m[0][3] = x + w / 2.f;
+	m[1][3] = y + h / 2.f;
+	m[2][3] = depth / 2.f;
+
+	m[0][0] = w / 2.f;
+	m[1][1] = h / 2.f;
+	m[2][2] = depth / 2.f;
+	return m;
+}
+
 /******************* 矩阵变换 *******************/
 
 int main(int argc, char** argv) 
