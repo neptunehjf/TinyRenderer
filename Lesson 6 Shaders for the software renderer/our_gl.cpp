@@ -25,6 +25,7 @@ void viewport(int x, int y, int w, int h)
 
 // 投影
 // 参照 Referrence/projection1.png
+// 参照 Referrence/projection2.png
 void projection(float coeff) 
 {
     Projection = Matrix::identity();
@@ -99,8 +100,9 @@ void triangle(Vec4f *pts, IShader &shader, TGAImage &image, TGAImage &zbuffer)
     {
         for (P.y=bboxmin.y; P.y<=bboxmax.y; P.y++) 
         {
-            // 求重心坐标系数
-            // 注意需要除以齐次分量w(位移和透视视角都会影响w)，从4D转回3D
+            // 求重心坐标系数c
+            // 注意需要除以齐次分量w(位移和透视视角都会影响w)，4D=>3D
+            // 用proj<2> 3D=>2D
             Vec3f c = barycentric(proj<2>(pts[0]/pts[0][3]), proj<2>(pts[1]/pts[1][3]), proj<2>(pts[2]/pts[2][3]), proj<2>(P));
             
             // 根据重心坐标法，用插值算出三角形任意一个像素的深度z和齐次分量w，最终深度是z/w
