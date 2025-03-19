@@ -15,34 +15,34 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="geometry.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="main.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="model.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="our_gl.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="geometry.cpp">
+      <Filter>Dependency Files</Filter>
+    </ClCompile>
+    <ClCompile Include="model.cpp">
+      <Filter>Dependency Files</Filter>
+    </ClCompile>
     <ClCompile Include="tgaimage.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Dependency Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="geometry.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="model.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
     <ClInclude Include="our_gl.h">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="geometry.h">
+      <Filter>Dependency Files</Filter>
+    </ClInclude>
+    <ClInclude Include="model.h">
+      <Filter>Dependency Files</Filter>
+    </ClInclude>
     <ClInclude Include="tgaimage.h">
-      <Filter>Source Files</Filter>
+      <Filter>Dependency Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
