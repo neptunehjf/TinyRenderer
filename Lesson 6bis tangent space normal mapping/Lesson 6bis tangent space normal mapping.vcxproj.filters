@@ -21,14 +21,14 @@
     <ClCompile Include="model.cpp">
       <Filter>Dependency Files</Filter>
     </ClCompile>
-    <ClCompile Include="our_gl.cpp">
-      <Filter>Dependency Files</Filter>
-    </ClCompile>
     <ClCompile Include="tgaimage.cpp">
       <Filter>Dependency Files</Filter>
     </ClCompile>
     <ClCompile Include="geometry.cpp">
       <Filter>Dependency Files</Filter>
+    </ClCompile>
+    <ClCompile Include="our_gl.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -38,11 +38,11 @@
     <ClInclude Include="model.h">
       <Filter>Dependency Files</Filter>
     </ClInclude>
-    <ClInclude Include="our_gl.h">
-      <Filter>Dependency Files</Filter>
-    </ClInclude>
     <ClInclude Include="tgaimage.h">
       <Filter>Dependency Files</Filter>
+    </ClInclude>
+    <ClInclude Include="our_gl.h">
+      <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
