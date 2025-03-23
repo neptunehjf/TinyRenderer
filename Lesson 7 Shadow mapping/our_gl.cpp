@@ -17,10 +17,10 @@ void viewport(int x, int y, int w, int h)
     Viewport = Matrix::identity();
     Viewport[0][3] = x + w / 2.f;
     Viewport[1][3] = y + h / 2.f;
-    Viewport[2][3] = 255.f / 2.f;
+    Viewport[2][3] = depth / 2.f;
     Viewport[0][0] = w / 2.f;
     Viewport[1][1] = h / 2.f;
-    Viewport[2][2] = 255.f / 2.f;
+    Viewport[2][2] = depth / 2.f;
 }
 
 // 投影
@@ -74,18 +74,8 @@ Vec3f barycentric(Vec2f A, Vec2f B, Vec2f C, Vec2f P)
     return Vec3f(-1, 1, 1);
 }
 
-void triangle(mat<4,3,float> &clipc, IShader &shader, TGAImage &image, float *zbuffer) 
+void triangle(Vec4f* pts, IShader& shader, TGAImage& image, float* zbuffer)
 {
-    // 因为存储方式是和opengl一样按列存储，所以需要转置方便计算
-    // 用viewport转为屏幕坐标，因为光栅化是基于屏幕像素进行插值
-    mat<3,4,float> pts  = (Viewport*clipc).transpose();
-
-    // 屏幕坐标标准化
-    // 除以齐次分量w(位移和透视视角都会影响w)，4D=>3D
-    // 用proj<2> 3D=>2D
-    mat<3,2,float> pts2;
-    for (int i=0; i<3; i++) pts2[i] = proj<2>(pts[i]/pts[i][3]);
-
     // 初始bbox为空
     Vec2f bboxmin( std::numeric_limits<float>::max(),  std::numeric_limits<float>::max());
     Vec2f bboxmax(-std::numeric_limits<float>::max(), -std::numeric_limits<float>::max());
@@ -96,8 +86,8 @@ void triangle(mat<4,3,float> &clipc, IShader &shader, TGAImage &image, float *zb
     {
         for (int j=0; j<2; j++) 
         {
-            bboxmin[j] = std::max(0.f,      std::min(bboxmin[j], pts2[i][j]));
-            bboxmax[j] = std::min(clamp[j], std::max(bboxmax[j], pts2[i][j]));
+            bboxmin[j] = std::max(0.f,      std::min(bboxmin[j], pts[i][j] / pts[i][3]));
+            bboxmax[j] = std::min(clamp[j], std::max(bboxmax[j], pts[i][j] / pts[i][3]));
         }
     }
     Vec2i P;
@@ -108,13 +98,15 @@ void triangle(mat<4,3,float> &clipc, IShader &shader, TGAImage &image, float *zb
         for (P.y=bboxmin.y; P.y<=bboxmax.y; P.y++) 
         {
             // 求重心坐标系数bc，要用标准化的屏幕坐标计算
-            Vec3f bc = barycentric(pts2[0], pts2[1], pts2[2], P);
+            // 除以齐次分量w(位移和透视视角都会影响w)，4D=>3D
+            // 用proj<2> 3D=>2D
+            Vec3f bc = barycentric(proj<2>(pts[0] / pts[0][3]), proj<2>(pts[1] / pts[1][3]), proj<2>(pts[2] / pts[2][3]), proj<2>(P));
 
             // 根据重心坐标法，用插值算出三角形任意一个像素的深度z和齐次分量w，最终深度是z/w
             float z = pts[0][2] * bc.x + pts[1][2] * bc.y + pts[2][2] * bc.z;
             float w = pts[0][3] * bc.x + pts[1][3] * bc.y + pts[2][3] * bc.z;
-            // 深度限制在[0,255]，注意四舍五入
-            int frag_depth = std::max(0, std::min(255, int(z / w + .5)));
+            // 深度限制在[0,depth]，注意四舍五入
+            int frag_depth = std::max(0, std::min((int)depth, int(z / w + .5)));
 
             // 如果点不在三角形内部就不渲染
             // 如果当前像素的深度值小于zbuffer中的，则不渲染（注意和OPENGL深度值判断是相反的）
