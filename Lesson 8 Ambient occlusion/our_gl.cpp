@@ -66,7 +66,7 @@ Vec3f barycentric(Vec2f A, Vec2f B, Vec2f C, Vec2f P)
     // 重心坐标向量u
     Vec3f u = cross(s[0], s[1]);
 
-    // 因为t.z = 2 * 三角形面积，小于等于0说明是退化三角形。
+    // 因为u.z = 2 * 三角形面积，小于等于0说明是退化三角形。
     // 又因为精度原因，取一个阈值1
     // 如果是退化三角形，则返回带负值的重心坐标系数，因为重心坐标系数小于0的时候说明点不在三角形内部，绘制时舍弃
     if (abs(u[2]) > 1e-2)
@@ -106,7 +106,8 @@ void triangle(Vec4f* pts, IShader& shader, TGAImage& image, float* zbuffer)
             float z = pts[0][2] * bc.x + pts[1][2] * bc.y + pts[2][2] * bc.z;
             float w = pts[0][3] * bc.x + pts[1][3] * bc.y + pts[2][3] * bc.z;
             // 深度限制在[0,depth]，注意四舍五入
-            int frag_depth = std::max(0, std::min((int)depth, int(z / w + .5)));
+            float frag_depth = std::max((float)0.0, std::min(depth, (float)(z / w + .5)));
+            frag_depth /= depth;
 
             // 如果点不在三角形内部就不渲染
             // 如果当前像素的深度值小于zbuffer中的，则不渲染（注意和OPENGL深度值判断是相反的）
