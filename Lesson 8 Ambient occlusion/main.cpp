@@ -1,4 +1,4 @@
-#include <vector>
+﻿#include <vector>
 #include <limits>
 #include <iostream>
 #include "tgaimage.h"
@@ -16,7 +16,7 @@ Vec3f       eye(1.2, -0.8, 3);
 Vec3f    center(0, 0, 0);
 Vec3f        up(0, 1, 0);
 
-// ��Ⱦ���ͼ
+// 影描画用の光源視点深度マップをレンダリング
 struct DepthShader : public IShader
 {
     mat<3, 3, float> varying_tri;
@@ -27,37 +27,47 @@ struct DepthShader : public IShader
     {
         Vec4f gl_Vertex = embed<4>(model->vert(iface, nthvert));
         gl_Vertex = Viewport * Projection * ModelView * gl_Vertex;
-        varying_tri.set_col(nthvert, proj<3>(gl_Vertex / gl_Vertex[3])); // NDC��
+        varying_tri.set_col(nthvert, proj<3>(gl_Vertex / gl_Vertex[3])); // NDC化
         return gl_Vertex;
     }
 
     virtual bool fragment(Vec3f bc, TGAColor& color)
     {
-        Vec3f p = varying_tri * bc; // ��ֵ
-        color = TGAColor(255, 255, 255) * (p.z / depth); // ������� [0,1]
+        Vec3f p = varying_tri * bc; // 補間座標
+        color = TGAColor(255, 255, 255) * (p.z / depth); // 深度値を[0,1]範囲にマッピング
         return false;
     }
 };
 
-// Screen-based AO�㷨
+// Screen-based AO
 float max_elevation_angle(float* zbuffer, Vec2f p, Vec2f dir) 
 {
     float maxangle = 0;
     const float t_max = 10;
 
-    // ��������p����t_max��ʱ�䵥λ������
+    // 遍历像素p附近t_max个时间单位的像素
+    // 
+    // ピクセルpからdir方向へt_max距離まで探索
     for (float t = 0.; t < t_max; t += 1.)
     {
-        // ��dir�������ߣ���ǰλ��Ϊcur
+        // 沿dir方向发射线，当前位置为cur
+        // 現在の探索位置を計算
         Vec2f cur = p + dir * t;
-        // ���������Ļ��Χ������ĿǰΪֹ�Ľ��
+        // 如果超出屏幕范围，返回目前为止的结果
+        // 画面外判定（早期リターン）
         if (cur.x >= width || cur.y >= height || cur.x < 0 || cur.y < 0) return maxangle;
 
-        // ��������ݶ�ֵ
+        // 计算最大梯度值
+        // 最大勾配を計算
+
         float distance = (p - cur).length();
 
-        // distance��С���ᵼ�·�ĸ��Ӱ����󣬴Ӷ������˷���elevation��Ӱ�죬ʹ���ƫ��
-        // ���ԶԱ�diablo_AO.tga �� diablo_AO_no_distance_fix.tga�������������Ȼdiablo_AO.tga��Ч������Ȼ
+        // distance过小，会导致分母的影响过大，从而淡化了分子elevation的影响，使结果偏大
+        // 可以对比diablo_AO.tga 和 diablo_AO_no_distance_fix.tga这两个结果，显然diablo_AO.tga的效果更自然
+        // 
+        // 距離が小さすぎると分母の影響が過大になり、標高差(elevation)の影響が相対的に小さくなるため計算結果が過大評価される‌:
+        // diablo_AO.tga と diablo_AO_no_distance_fix.tga を比較すると、距離補正を施したdiablo_AO.tgaの結果がより自然な表現となる‌
+
         if (distance < 1.f) continue; 
         float elevation = zbuffer[int(cur.x) + int(cur.y) * width] - zbuffer[int(p.x) + int(p.y) * width];
         maxangle = std::max(maxangle, atanf(elevation / distance));
@@ -73,9 +83,9 @@ int main(int argc, char** argv)
         return 1;
     }
 
-    float* zbuffer = new float[width * height];  //ԭ������zbuffer
+    float* zbuffer = new float[width * height];  // メインシーンの深度バッファ
 
-    // ��ʼ��Ϊ��Сֵ
+    // 最小値で初期化
     for (int i = width * height; --i; )
     {
         zbuffer[i] = -std::numeric_limits<float>::max();
@@ -100,7 +110,7 @@ int main(int argc, char** argv)
         triangle(screen_coords, depthshader, depth, zbuffer);
     }
     depth.flip_vertically();
-    depth.write_tga_file("depth.tga"); // ���ͼ
+    depth.write_tga_file("depth.tga"); // 深度マップ出力
 
 
     // AO
@@ -110,21 +120,30 @@ int main(int argc, char** argv)
     {
         for (int y = 0; y < height; y++) 
         {
-            // zbuffer��С��˵��û�����塣����
+            // zbuffer过小，说明没有物体。跳过
+            // 深度値が極端に小さい領域はオブジェクトが存在しないためスキップ
             if (zbuffer[x + y * width] < -1e5) continue;
 
             float total = 0;
-            // ÿ��Ƭ�ΰ�Բ��8����������
+            // 每个片段按圆周8采样个方向
+            // 円周上8方向サンプリング
             for (float a = 0; a < M_PI * 2 - 1e-4; a += M_PI / 4) 
             {
-                // �ݶ�Խ��˵����������̶ֳ�Խ������ɽ�Ⱥ�ƽԭ����������
-                // �ݶ���[0,90]��֮�䣬���total��Ϊ����ϵ������90 - �ݶȣ��ݶ�Խ��Խ��
+                // 梯度越大，说明物体的遮罩程度越大（想象山谷和平原的遮罩区别）
+                // 梯度在[0,90]度之间，因此total作为遮罩系数，是90 - 梯度，梯度越大，越暗
+                //
+                /* 仰角計算の物理的意味:
+                   勾配が大きい＝遮蔽が強い（谷間と平原地形の遮蔽差を想像）
+                   仰角範囲[0, 90度]のため、遮蔽係数totalは (90度 - 測定角度) で計算
+                   勾配↑ → 測定角度↑ → total値↓ → 画像暗く */
                 total += M_PI / 2 - max_elevation_angle(zbuffer, Vec2f(x, y), Vec2f(cos(a), sin(a)));
             }
-            // ������ƽ����Ӧ������һ�ּ򵥵�Monte Carlo������
+            // 采样求平均，应该算是一种简单的Monte Carlo采样了
+            // サンプリングの平均化（簡易Monte Carlo積分）
             total /= (M_PI / 2) * 8;
 
-            // ��100���ݷŴ����ķ��ʹ���������(�Թ��ˣ����Ŵ����Ļ���ģ�Ϳ������������׵�)
+            // 用100次幂放大结果的方差，使结果更鲜明(试过了，不放大结果的话，模型看起来近乎纯白的)
+            // 100乗でコントラストを強調（未処理時はモデルが白色過多になる現象を実験で確認）
             total = pow(total, 100.f);
 
             frame.set(x, y, TGAColor(total * 255, total * 255, total * 255));

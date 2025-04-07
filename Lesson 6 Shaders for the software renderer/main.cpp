@@ -1,4 +1,4 @@
-#include <vector>
+ï»¿#include <vector>
 #include <iostream>
 
 #include "tgaimage.h"
@@ -15,38 +15,38 @@ Vec3f       eye(0,-1,3);
 Vec3f    center(0,0,0);
 Vec3f        up(0,1,0);
 
-// Gouraud Shading£¬ÏÈ¼ÆËãºÃ¸÷¶¥µãµÄÑÕÉ«£¬ÔÙ¶ÔÑÕÉ«²åÖµ
+//  Gouraud Shadingï¼ˆé ‚ç‚¹å˜ä½ã§è‰²è¨ˆç®—å¾Œã€è£œé–“å‡¦ç†ï¼‰
 struct GouraudShader : public IShader 
 {
-    // vertex shaderµÄÊä³ö, fragment shaderµÄÊäÈë
+    // é ‚ç‚¹ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼å‡ºåŠ›  ãƒ•ãƒ©ã‚°ãƒ¡ãƒ³ãƒˆã‚·ã‚§ãƒ¼ãƒ€ãƒ¼å…¥åŠ›
     Vec3f varying_intensity; 
 
     // vertex shader
     virtual Vec4f vertex(int iface, int nthvert) 
     {
-        // ¶ÁÈ¡Ä£ĞÍµÄ¶¥µãÊı¾İ
-        //  embed<4> 3d×ø±ê=>4dÆë´Î×ø±ê
+        // ãƒ¢ãƒ‡ãƒ«é ‚ç‚¹ãƒ‡ãƒ¼ã‚¿å–å¾—
+        // embed<4> 3Dåº§æ¨™â†’4DåŒæ¬¡åº§æ¨™å¤‰æ›
         Vec4f gl_Vertex = embed<4>(model->vert(iface, nthvert)); 
 
         // local=>view=>projection=>screen
         gl_Vertex = Viewport*Projection*ModelView*gl_Vertex;
 
-        // diffuse¹âÕÕ£¬Óë·¨ÏßºÍ¹âÏßµÄ¼Ğ½ÇÓĞ¹Ø
+        // æ‹¡æ•£å…‰ï¼ˆdiffuseï¼‰ç…§æ˜è¨ˆç®—ï¼ˆæ³•ç·šã¨å…‰ç·šã®è§’åº¦ä¾å­˜ï¼‰
         varying_intensity[nthvert] = std::max(0.f, model->normal(iface, nthvert)*light_dir);
         
         return gl_Vertex;
     }
 
     // fragment shader
-    // barÊÇÖØĞÄ×ø±êÏµÊı£¬ÓÃÓÚ²åÖµ
+    // bar: é‡å¿ƒåº§æ¨™ä¿‚æ•°ï¼ˆè£œé–“ç”¨ï¼‰
     virtual bool fragment(Vec3f bar, TGAColor &color) 
     {
-        // ¸ù¾İ¸÷¶¥µãµÄÑÕÉ«½øĞĞ²åÖµ
+        // é ‚ç‚¹ã‚«ãƒ©ãƒ¼ã‚’é‡å¿ƒåº§æ¨™ã§è£œé–“
         float intensity = varying_intensity * bar;
 
         color = TGAColor(255, 255, 255)*intensity;
 
-        // ÊÇ·ñÉáÆúµ±Ç°Æ¬¶Î
+        // ãƒ•ãƒ©ã‚°ãƒ¡ãƒ³ãƒˆç ´æ£„åˆ¤å®šï¼ˆå¸¸ã«æç”»ï¼‰
         return false;                           
     }
 };
@@ -75,7 +75,8 @@ int main(int argc, char** argv)
     for (int i=0; i<model->nfaces(); i++) 
     {
         Vec4f screen_coords[3];
-        // Í¼Ôª×°Åä
+        // å›¾å…ƒè£…é…
+        // ãƒ—ãƒªãƒŸãƒ†ã‚£ãƒ–ã‚¢ã‚»ãƒ³ãƒ–ãƒªï¼ˆé ‚ç‚¹ãƒ‡ãƒ¼ã‚¿ã‹ã‚‰å›³å½¢è¦ç´ ã‚’æ§‹ç¯‰ï¼‰
         for (int j=0; j<3; j++) 
         {
             screen_coords[j] = shader.vertex(i, j);

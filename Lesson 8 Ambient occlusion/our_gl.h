@@ -1,4 +1,4 @@
-#ifndef __OUR_GL_H__
+﻿#ifndef __OUR_GL_H__
 #define __OUR_GL_H__
 #include "tgaimage.h"
 #include "geometry.h"

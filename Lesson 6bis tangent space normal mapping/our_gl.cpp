@@ -1,4 +1,4 @@
-#include <cmath>
+ï»¿#include <cmath>
 #include <limits>
 #include <cstdlib>
 #include "our_gl.h"
@@ -9,9 +9,9 @@ Matrix Projection;
 
 IShader::~IShader() {}
 
-// ÊÓ¿Ú±ä»»£¬²Ã¼ô×ø±ê=>ÆÁÄ»×ø±ê
-// 2D×ø±ê [-1,1] => [x+w, y+h]
-// Éî¶È   [-1,1] => [0, 255]
+// ãƒ“ãƒ¥ãƒ¼ãƒãƒ¼ãƒˆå¤‰æ›ï¼ˆã‚¯ãƒªãƒƒãƒ—åº§æ¨™â†’ã‚¹ã‚¯ãƒªãƒ¼ãƒ³åº§æ¨™ï¼‰
+// 2Dåº§æ¨™ [-1,1] â‡’ [x, x+w] / [y, y+h]
+// æ·±åº¦å€¤ [-1,1] â‡’ [0, 255] ã«ç·šå½¢ãƒãƒƒãƒ”ãƒ³ã‚°
 void viewport(int x, int y, int w, int h)
 {
     Viewport = Matrix::identity();
@@ -23,19 +23,20 @@ void viewport(int x, int y, int w, int h)
     Viewport[2][2] = 255.f / 2.f;
 }
 
-// Í¶Ó°
-// ²ÎÕÕ Referrence/projection1.png
-// ²ÎÕÕ Referrence/projection2.png
+// å°„å½±å¤‰æ›
+// å‚ç…§ Referrence/projection1.png
+// å‚ç…§ Referrence/projection2.png
 void projection(float coeff)
 {
     Projection = Matrix::identity();
     Projection[3][2] = coeff;
 }
 
-// ÊÓ½Ç
+// ãƒ“ãƒ¥ãƒ¼å¤‰æ›
+// ã‚«ãƒ¡ãƒ©ä½ç½®ã®é€†æ–¹å‘ã¸ã®ç§»å‹•å¾Œã€åº§æ¨™ç³»ã‚’ã‚«ãƒ¡ãƒ©ç©ºé–“ã«å¤‰æ›
 void lookat(Vec3f eye, Vec3f center, Vec3f up)
 {
-    // Ïà»ú×ø±êÏµ
+    // ã‚«ãƒ¡ãƒ©åº§æ¨™ç³»ã®åŸºåº•ãƒ™ã‚¯ãƒˆãƒ«è¨ˆç®—
     Vec3f z = (eye - center).normalize();
     Vec3f x = cross(up, z).normalize();
     Vec3f y = cross(z, x).normalize();
@@ -43,17 +44,17 @@ void lookat(Vec3f eye, Vec3f center, Vec3f up)
     ModelView = Matrix::identity();
     for (int i = 0; i < 3; i++)
     {
-        // ×ªµ½Ïà»ú×ø±êÏµ(view¿Õ¼ä)
+        // ã‚«ãƒ¡ãƒ©åº§æ¨™ç³»ã¸ã®åŸºåº•å¤‰æ›
         ModelView[0][i] = x[i];
         ModelView[1][i] = y[i];
         ModelView[2][i] = z[i];
-        // ÒÔÏà»úÎªÔ­µã£¬ÎïÌåÎ»ÖÃÏà¶ÔÓÚÏà»úÊÇÏà·´µÄ
+        // ã‚«ãƒ¡ãƒ©ã‚’åŸç‚¹ã¨ã—ã¦ã€ç‰©ä½“ä½ç½®ã¯ã‚«ãƒ¡ãƒ©ã«å¯¾ã—ã¦é€†æ–¹å‘ã«ç§»å‹•ã•ã‚Œã‚‹
         ModelView[i][3] = -center[i];
     }
 }
 
-// ÇóÖØĞÄ×ø±êÏµÊı
-// ²Î¿¼Referrence/barycentric coordinates.jpg
+// é‡å¿ƒåº§æ¨™ä¿‚æ•°ã®è¨ˆç®—
+// å‚ç…§ Referrence/barycentric coordinates.jpg
 Vec3f barycentric(Vec2f A, Vec2f B, Vec2f C, Vec2f P)
 {
     Vec3f s[2];
@@ -63,71 +64,100 @@ Vec3f barycentric(Vec2f A, Vec2f B, Vec2f C, Vec2f P)
         s[i][1] = B[i] - A[i];
         s[i][2] = A[i] - P[i];
     }
-    // ÖØĞÄ×ø±êÏòÁ¿u
+    // é‡å¿ƒåº§æ¨™ãƒ™ã‚¯ãƒˆãƒ«u
     Vec3f u = cross(s[0], s[1]);
 
-    // ÒòÎªt.z = 2 * Èı½ÇĞÎÃæ»ı£¬Ğ¡ÓÚµÈÓÚ0ËµÃ÷ÊÇÍË»¯Èı½ÇĞÎ¡£
-    // ÓÖÒòÎª¾«¶ÈÔ­Òò£¬È¡Ò»¸öãĞÖµ1
-    // Èç¹ûÊÇÍË»¯Èı½ÇĞÎ£¬Ôò·µ»Ø´ø¸ºÖµµÄÖØĞÄ×ø±êÏµÊı£¬ÒòÎªÖØĞÄ×ø±êÏµÊıĞ¡ÓÚ0µÄÊ±ºòËµÃ÷µã²»ÔÚÈı½ÇĞÎÄÚ²¿£¬»æÖÆÊ±ÉáÆú
+    // å› ä¸ºt.z = 2 * ä¸‰è§’å½¢é¢ç§¯ï¼Œå°äºç­‰äº0è¯´æ˜æ˜¯é€€åŒ–ä¸‰è§’å½¢ã€‚
+    // åˆå› ä¸ºç²¾åº¦åŸå› ï¼Œå–ä¸€ä¸ªé˜ˆå€¼1
+    // å¦‚æœæ˜¯é€€åŒ–ä¸‰è§’å½¢ï¼Œåˆ™è¿”å›å¸¦è´Ÿå€¼çš„é‡å¿ƒåæ ‡ç³»æ•°ï¼Œå› ä¸ºé‡å¿ƒåæ ‡ç³»æ•°å°äº0çš„æ—¶å€™è¯´æ˜ç‚¹ä¸åœ¨ä¸‰è§’å½¢å†…éƒ¨ï¼Œç»˜åˆ¶æ—¶èˆå¼ƒ
+    //
+    /* é€€åŒ–ä¸‰è§’å½¢åˆ¤å®šå‡¦ç†ï¼š
+ ã€€  t.z = 2 * ä¸‰è§’å½¢é¢ç©ï¼ˆç¬¦å·ä»˜ãï¼‰
+  ã€€ çµ¶å¯¾å€¤1æœªæº€â†’é¢ç©ã»ã¼0ã¨åˆ¤å®šï¼ˆæµ®å‹•å°æ•°ç‚¹ç²¾åº¦å¯¾ç­–ï¼‰
+  ã€€ ç•°å¸¸å€¤æ¤œå‡ºæ™‚ã¯ç„¡åŠ¹åº§æ¨™(-1,-1,-1)è¿”å´ */
     if (abs(u[2]) > 1e-2)
         return Vec3f(1.f - (u.x + u.y) / u.z, u.y / u.z, u.x / u.z);
     return Vec3f(-1, 1, 1);
 }
 
-void triangle(mat<4,3,float> &clipc, IShader &shader, TGAImage &image, float *zbuffer) 
+// barycentricæ–¹å¼ç”»å¡«å……ä¸‰è§’å½¢
+// barycentricæ–¹å¼éœ€è¦å’Œbboxç»“åˆèµ·æ¥ï¼Œå¦åˆ™æ•ˆç‡å¤ªä½
+// 
+// é‡å¿ƒåº§æ¨™æ³•ã«ã‚ˆã‚‹ä¸‰è§’å½¢å¡—ã‚Šã¤ã¶ã—
+// åŠ¹ç‡ä½ä¸‹é˜²æ­¢ã®ãŸã‚BBoxï¼ˆãƒã‚¦ãƒ³ãƒ‡ã‚£ãƒ³ã‚°ãƒœãƒƒã‚¯ã‚¹ï¼‰ã¨ä½µç”¨å¿…é ˆ
+void triangle(mat<4, 3, float>& clipc, IShader& shader, TGAImage& image, float* zbuffer)
 {
-    // ÒòÎª´æ´¢·½Ê½ÊÇºÍopenglÒ»Ñù°´ÁĞ´æ´¢£¬ËùÒÔĞèÒª×ªÖÃ·½±ã¼ÆËã
-    // ÓÃviewport×ªÎªÆÁÄ»×ø±ê£¬ÒòÎª¹âÕ¤»¯ÊÇ»ùÓÚÆÁÄ»ÏñËØ½øĞĞ²åÖµ
-    mat<3,4,float> pts  = (Viewport*clipc).transpose();
+    // å› ä¸ºå­˜å‚¨æ–¹å¼æ˜¯å’Œopenglä¸€æ ·æŒ‰åˆ—å­˜å‚¨ï¼Œæ‰€ä»¥éœ€è¦è½¬ç½®æ–¹ä¾¿è®¡ç®—
+    // ç”¨viewportè½¬ä¸ºå±å¹•åæ ‡ï¼Œå› ä¸ºå…‰æ …åŒ–æ˜¯åŸºäºå±å¹•åƒç´ è¿›è¡Œæ’å€¼
+    //
+    // OpenGLã¨åŒæ§˜ã®åˆ—å„ªå…ˆæ ¼ç´æ–¹å¼ã®ãŸã‚ã€è¨ˆç®—ç”¨ã«è»¢ç½®
+    // ãƒ©ã‚¹ã‚¿ãƒ©ã‚¤ã‚ºã¯ã‚¹ã‚¯ãƒªãƒ¼ãƒ³ç”»ç´ ãƒ™ãƒ¼ã‚¹ã§è£œé–“ã™ã‚‹ãŸã‚ãƒ“ãƒ¥ãƒ¼ãƒãƒ¼ãƒˆå¤‰æ›ã‚’é©ç”¨
+    mat<3, 4, float> pts = (Viewport * clipc).transpose();
 
-    // ÆÁÄ»×ø±ê±ê×¼»¯
-    // ³ıÒÔÆë´Î·ÖÁ¿w(Î»ÒÆºÍÍ¸ÊÓÊÓ½Ç¶¼»áÓ°Ïìw)£¬4D=>3D
-    // ÓÃproj<2> 3D=>2D
-    mat<3,2,float> pts2;
-    for (int i=0; i<3; i++) pts2[i] = proj<2>(pts[i]/pts[i][3]);
+    // å±å¹•åæ ‡æ ‡å‡†åŒ–
+    // é™¤ä»¥é½æ¬¡åˆ†é‡w(ä½ç§»å’Œé€è§†è§†è§’éƒ½ä¼šå½±å“w)ï¼Œ4D=>3D
+    // ç”¨proj<2> 3D=>2D
+    //
+    // ã‚¹ã‚¯ãƒªãƒ¼ãƒ³åº§æ¨™æ­£è¦åŒ–å‡¦ç†
+    // åŒæ¬¡åº§æ¨™wæˆåˆ†ã«ã‚ˆã‚‹é™¤ç®—ï¼ˆå¹³è¡Œç§»å‹•/é€è¦–æŠ•å½±ã®å½±éŸ¿ã‚’å«ã‚€ï¼‰4Dâ†’3Då¤‰æ›
+    // proj<2>ã§3Dâ†’2Då°„å½±
+    mat<3, 2, float> pts2;
+    for (int i = 0; i < 3; i++) pts2[i] = proj<2>(pts[i] / pts[i][3]);
 
-    // ³õÊ¼bboxÎª¿Õ
-    Vec2f bboxmin( std::numeric_limits<float>::max(),  std::numeric_limits<float>::max());
+    // BBoxåˆæœŸåŒ–ï¼ˆç©ºé ˜åŸŸï¼‰
+    Vec2f bboxmin(std::numeric_limits<float>::max(), std::numeric_limits<float>::max());
     Vec2f bboxmax(-std::numeric_limits<float>::max(), -std::numeric_limits<float>::max());
 
-    // // ¼ÆËãbbox
+    // BBoxè¨ˆç®—å‡¦ç†
     Vec2f clamp(image.get_width() - 1, image.get_height() - 1);
-    for (int i=0; i<3; i++) 
+    for (int i = 0; i < 3; i++)
     {
-        for (int j=0; j<2; j++) 
+        for (int j = 0; j < 2; j++)
         {
-            bboxmin[j] = std::max(0.f,      std::min(bboxmin[j], pts2[i][j]));
+            bboxmin[j] = std::max(0.f, std::min(bboxmin[j], pts2[i][j]));
             bboxmax[j] = std::min(clamp[j], std::max(bboxmax[j], pts2[i][j]));
         }
     }
+
+    // éå†bboxå†…çš„æ‰€æœ‰åƒç´ ï¼Œbarycentricæ–¹å¼åˆ¤æ–­ï¼Œå¦‚æœåœ¨ä¸‰è§’å½¢å†…éƒ¨å°±æ¸²æŸ“ï¼Œå¦åˆ™ä¸æ¸²æŸ“
+    // BBoxé ˜åŸŸå†…ãƒ”ã‚¯ã‚»ãƒ«å˜ä½èµ°æŸ» é‡å¿ƒåº§æ¨™ã«ã‚ˆã‚‹åŒ…å«åˆ¤å®šï¼šä¸‰è§’å½¢å†…éƒ¨ãªã‚‰æç”»ã€ãã‚Œä»¥å¤–ã¯ã‚¹ã‚­ãƒƒãƒ—
     Vec2i P;
     TGAColor color;
-    // ±éÀúbboxÄÚµÄËùÓĞÏñËØ
-    for (P.x=bboxmin.x; P.x<=bboxmax.x; P.x++) 
+    for (P.x = bboxmin.x; P.x <= bboxmax.x; P.x++)
     {
-        for (P.y=bboxmin.y; P.y<=bboxmax.y; P.y++) 
+        for (P.y = bboxmin.y; P.y <= bboxmax.y; P.y++)
         {
-            // ÇóÖØĞÄ×ø±êÏµÊıbc£¬ÒªÓÃ±ê×¼»¯µÄÆÁÄ»×ø±ê¼ÆËã
+
+            mat<3, 2, float> pts2;
+            for (int i = 0; i < 3; i++) pts2[i] = proj<2>(pts[i] / pts[i][3]);
+
+            // é‡å¿ƒåº§æ¨™ä¿‚æ•°ã®è¨ˆç®—
             Vec3f bc = barycentric(pts2[0], pts2[1], pts2[2], P);
 
-            // ¸ù¾İÖØĞÄ×ø±ê·¨£¬ÓÃ²åÖµËã³öÈı½ÇĞÎÈÎÒâÒ»¸öÏñËØµÄÉî¶ÈzºÍÆë´Î·ÖÁ¿w£¬×îÖÕÉî¶ÈÊÇz/w
+            // æ ¹æ®é‡å¿ƒåæ ‡æ³•ï¼Œç”¨æ’å€¼ç®—å‡ºä¸‰è§’å½¢ä»»æ„ä¸€ä¸ªåƒç´ çš„æ·±åº¦zå’Œé½æ¬¡åˆ†é‡wï¼Œæœ€ç»ˆæ·±åº¦æ˜¯z/w
+            //
+            // æ·±åº¦å€¤ã¨åŒæ¬¡æˆåˆ†ã®è£œé–“è¨ˆç®—
             float z = pts[0][2] * bc.x + pts[1][2] * bc.y + pts[2][2] * bc.z;
             float w = pts[0][3] * bc.x + pts[1][3] * bc.y + pts[2][3] * bc.z;
-            // Éî¶ÈÏŞÖÆÔÚ[0,255]£¬×¢ÒâËÄÉáÎåÈë
+
+            // æ·±åº¦å€¤ã‚’[0-255]ç¯„å›²ã«é™å®šï¼ˆå››æ¨äº”å…¥å‡¦ç†ï¼‰
             int frag_depth = std::max(0, std::min(255, int(z / w + .5)));
 
-            // Èç¹ûµã²»ÔÚÈı½ÇĞÎÄÚ²¿¾Í²»äÖÈ¾
-            // Èç¹ûµ±Ç°ÏñËØµÄÉî¶ÈÖµĞ¡ÓÚzbufferÖĞµÄ£¬Ôò²»äÖÈ¾£¨×¢ÒâºÍOPENGLÉî¶ÈÖµÅĞ¶ÏÊÇÏà·´µÄ£©
-            if (bc.x<0 || bc.y<0 || bc.z<0 || zbuffer[P.x+P.y*image.get_width()]>frag_depth) continue;
+            // å¦‚æœç‚¹ä¸åœ¨ä¸‰è§’å½¢å†…éƒ¨å°±ä¸æ¸²æŸ“
+            // å¦‚æœå½“å‰åƒç´ çš„æ·±åº¦å€¼å°äºzbufferä¸­çš„ï¼Œåˆ™ä¸æ¸²æŸ“ï¼ˆæ³¨æ„å’ŒOPENGLæ·±åº¦å€¼åˆ¤æ–­æ˜¯ç›¸åçš„ï¼‰
+            // 
+            // ä¸‰è§’å½¢å¤–åˆ¤å®š or æ·±åº¦ãƒ†ã‚¹ãƒˆå¤±æ•—
+            // OpenGLã®ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆæ·±åº¦ãƒ†ã‚¹ãƒˆï¼ˆGL_LESSï¼‰ã¨ã¯é€†æ–¹å‘ã®åˆ¤å®šãƒ­ã‚¸ãƒƒã‚¯ã§ã‚ã‚‹ã“ã¨ã«æ³¨æ„
+            if (bc.x < 0 || bc.y < 0 || bc.z<0 || zbuffer[P.x + P.y * image.get_width()]>frag_depth) continue;
 
             bool discard = shader.fragment(bc, color);
-            if (!discard) 
+            if (!discard)
             {
-                // ¸üĞÂzbuffer²¢»æÖÆ
-                zbuffer[P.x+P.y*image.get_width()] = frag_depth;
+                // æ·±åº¦ãƒãƒƒãƒ•ã‚¡æ›´æ–°
+                zbuffer[P.x + P.y * image.get_width()] = frag_depth;
+                // ã‚«ãƒ©ãƒ¼æç”»
                 image.set(P.x, P.y, color);
             }
         }
     }
 }
-

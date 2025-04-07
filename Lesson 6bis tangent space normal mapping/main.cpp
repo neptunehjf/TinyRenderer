@@ -1,4 +1,4 @@
-#include <vector>
+ï»¿#include <vector>
 #include <iostream>
 
 #include "tgaimage.h"
@@ -15,74 +15,77 @@ Vec3f       eye(0, -1, 3);
 Vec3f    center(0, 0, 0);
 Vec3f        up(0, 1, 0);
 
-// Gouraud Shading£¬ÏÈ¼ÆËãºÃ¸÷¶¥µãµÄÑÕÉ«£¬ÔÙ¶ÔÑÕÉ«²åÖµ
+//  Gouraud Shadingï¼ˆé ‚ç‚¹å˜ä½ã§è‰²è¨ˆç®—å¾Œã€è£œé–“å‡¦ç†ï¼‰
 //struct GouraudShader : public IShader
 //{
-//    // vertex shaderµÄÊä³ö, fragment shaderµÄÊäÈë
+//    // é ‚ç‚¹ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼å‡ºåŠ›  ãƒ•ãƒ©ã‚°ãƒ¡ãƒ³ãƒˆã‚·ã‚§ãƒ¼ãƒ€ãƒ¼å…¥åŠ›
 //    Vec3f varying_intensity;
 //
 //    // vertex shader
 //    virtual Vec4f vertex(int iface, int nthvert)
 //    {
-//        // ¶ÁÈ¡Ä£ĞÍµÄ¶¥µãÊı¾İ
-//        //  embed<4> 3d×ø±ê=>4dÆë´Î×ø±ê
+//        // ãƒ¢ãƒ‡ãƒ«é ‚ç‚¹ãƒ‡ãƒ¼ã‚¿å–å¾—
+//        // embed<4> 3Dåº§æ¨™â†’4DåŒæ¬¡åº§æ¨™å¤‰æ›
 //        Vec4f gl_Vertex = embed<4>(model->vert(iface, nthvert));
 //
 //        // local=>view=>projection=>screen
 //        gl_Vertex = Viewport * Projection * ModelView * gl_Vertex;
 //
-//        // diffuse¹âÕÕ£¬Óë·¨ÏßºÍ¹âÏßµÄ¼Ğ½ÇÓĞ¹Ø
+//        // æ‹¡æ•£å…‰ï¼ˆdiffuseï¼‰ç…§æ˜è¨ˆç®—ï¼ˆæ³•ç·šã¨å…‰ç·šã®è§’åº¦ä¾å­˜ï¼‰
 //        varying_intensity[nthvert] = std::max(0.f, model->normal(iface, nthvert) * light_dir);
 //
 //        return gl_Vertex;
 //    }
 //
 //    // fragment shader
-//    // bcÊÇÖØĞÄ×ø±êÏµÊı£¬ÓÃÓÚ²åÖµ
-//    virtual bool fragment(Vec3f bc, TGAColor& color)
+//    // bar: é‡å¿ƒåº§æ¨™ä¿‚æ•°ï¼ˆè£œé–“ç”¨ï¼‰
+//    virtual bool fragment(Vec3f bar, TGAColor& color)
 //    {
-//        // ¸ù¾İ¸÷¶¥µãµÄÑÕÉ«½øĞĞ²åÖµ
-//        float intensity = varying_intensity * bc;
+//        // é ‚ç‚¹ã‚«ãƒ©ãƒ¼ã‚’é‡å¿ƒåº§æ¨™ã§è£œé–“
+//        float intensity = varying_intensity * bar;
 //
 //        color = TGAColor(255, 255, 255) * intensity;
 //
-//        // ÊÇ·ñÉáÆúµ±Ç°Æ¬¶Î
+//        // ãƒ•ãƒ©ã‚°ãƒ¡ãƒ³ãƒˆç ´æ£„åˆ¤å®šï¼ˆå¸¸ã«æç”»ï¼‰
 //        return false;
 //    }
 //};
 
-// Phong Shading£¬ÏÈ²åÖµ¶¥µã£¬ÔÙ¼ÆËãÑÕÉ«
+// Phong Shadingï¼Œï¼ˆé ‚ç‚¹è£œé–“å¾Œã€ãƒ”ã‚¯ã‚»ãƒ«å˜ä½ã§è‰²è¨ˆç®—ï¼‰
 struct Shader : public IShader
 {
-    mat<2, 3, float> varying_uv;  // Èı½ÇĞÎµÄuv×ø±ê  
-    mat<4, 3, float> varying_tri; // Èı½ÇĞÎµÄ²Ã¼ô(clip)×ø±ê
-    mat<3, 3, float> varying_nrm; // Èı½ÇĞÎµÄ·¨Ïß
-    mat<3, 3, float> ndc_tri;     // Èı½ÇĞÎµÄNDC×ø±ê
+    mat<2, 3, float> varying_uv;  // ä¸‰è§’å½¢ã®UVåº§æ¨™
+    mat<4, 3, float> varying_tri; // ä¸‰è§’å½¢ã®ã‚¯ãƒªãƒƒãƒ—åº§æ¨™
+    mat<3, 3, float> varying_nrm; // ä¸‰è§’å½¢ã®æ³•ç·š
+    mat<3, 3, float> ndc_tri;     // ä¸‰è§’å½¢ã®NDCåº§æ¨™
 
     // vertex shader
     virtual Vec4f vertex(int iface, int nthvert)
     {
-        // ÉèÖÃ¸÷fragment shaderĞèÒªµÄ²ÎÊı
-        // ×¢ÒâºÍopenGLÒ»ÑùÊÇ°´ÁĞ´æ´¢
+        // fragment shaderç”¨ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿è¨­å®š
+        // OpenGLã¨åŒæ§˜ã®åˆ—å„ªå…ˆæ–¹å¼ã§æ ¼ç´
         varying_uv.set_col(nthvert, model->uv(iface, nthvert));
         varying_nrm.set_col(nthvert, proj<3>((Projection * ModelView).invert_transpose() * embed<4>(model->normal(iface, nthvert), 0.f)));
         Vec4f gl_Vertex = Projection * ModelView * embed<4>(model->vert(iface, nthvert));
         varying_tri.set_col(nthvert, gl_Vertex);
-        ndc_tri.set_col(nthvert, proj<3>(gl_Vertex / gl_Vertex[3])); // Í¸ÊÓ³ı·¨£¬clip=>NDC
+        ndc_tri.set_col(nthvert, proj<3>(gl_Vertex / gl_Vertex[3]));  // ãƒ‘ãƒ¼ã‚¹ãƒšã‚¯ãƒ†ã‚£ãƒ–é™¤ç®—ï¼ˆã‚¯ãƒªãƒƒãƒ—â†’NDCï¼‰
         return gl_Vertex;
     }
 
     // fragment shader
-    // bcÊÇÖØĞÄ×ø±êÏµÊı£¬ÓÃÓÚ²åÖµ
+    // bc: é‡å¿ƒåº§æ¨™ä¿‚æ•°ï¼ˆè£œé–“ç”¨ï¼‰
     virtual bool fragment(Vec3f bc, TGAColor& color)
     {
-        // ²ÉÓÃÈı¸ö¶¥µã·¨ÏßµÄ²åÖµ£¬¶ø²»ÊÇÆäÖĞÈÎÒâÒ»µã£¬ÊÇÒòÎª¸´ÔÓÄ£ĞÍ¹²ÏíµÄ¶¥µãÓĞºÜ¶à£¬
-        // ËùÒÔÈÎÒ»¶¥µãµÄ·¨Ïß¶¼²»Ò»¶¨ÄÜ´ú±íÕæÊµµÄÈı½ÇĞÎµÄ·¨Ïß·½Ïò£¬Òò´ËÈ¡Èı¸ö¶¥µãµÄ²åÖµ²ÅÄÜÈ¡µÃ±È½Ï½Ó½üµÄĞ§¹û
+        // é‡‡ç”¨ä¸‰ä¸ªé¡¶ç‚¹æ³•çº¿çš„æ’å€¼ï¼Œè€Œä¸æ˜¯å…¶ä¸­ä»»æ„ä¸€ç‚¹ï¼Œæ˜¯å› ä¸ºå¤æ‚æ¨¡å‹å…±äº«çš„é¡¶ç‚¹æœ‰å¾ˆå¤šï¼Œ
+        // æ‰€ä»¥ä»»ä¸€é¡¶ç‚¹çš„æ³•çº¿éƒ½ä¸ä¸€å®šèƒ½ä»£è¡¨çœŸå®çš„ä¸‰è§’å½¢çš„æ³•çº¿æ–¹å‘ï¼Œå› æ­¤å–ä¸‰ä¸ªé¡¶ç‚¹çš„æ’å€¼æ‰èƒ½å–å¾—æ¯”è¾ƒæ¥è¿‘çš„æ•ˆæœ
+        // é ‚ç‚¹æ³•ç·šã®è£œé–“ç†ç”±ï¼š
+        // è¤‡é›‘ãƒ¢ãƒ‡ãƒ«ã§ã¯å…±æœ‰é ‚ç‚¹ã®æ³•ç·šãŒå®Ÿéš›ã®ä¸‰è§’å½¢ã®æ³•ç·šæ–¹å‘ã‚’
+        // æ­£ç¢ºã«è¡¨ç¾ã§ããªã„ãŸã‚ã€3é ‚ç‚¹è£œé–“ã§è¿‘ä¼¼
         Vec3f bn = (varying_nrm * bc).normalize();
 
         Vec2f uv = varying_uv * bc;
 
-        // ¼ÆËãtangent space£¬²ÎÕÕReferrence/tangent space.png
+        // æ¥ç©ºé–“è¨ˆç®—ï¼Œå‚ç…§Referrence/tangent space.png
         mat<3, 3, float> A;
         A[0] = ndc_tri.col(1) - ndc_tri.col(0);
         A[1] = ndc_tri.col(2) - ndc_tri.col(0);
@@ -98,14 +101,14 @@ struct Shader : public IShader
         B.set_col(1, j.normalize());
         B.set_col(2, bn);
 
-        // ¸ù¾İtangent spaceºÍnormalmap ¼ÆËã´ËÆ¬¶ÎµÄ·¨Ïß
+        // æ¥ç©ºé–“ã¨æ³•ç·šãƒãƒƒãƒ—ã‹ã‚‰æœ€çµ‚æ³•ç·šç®—å‡º
         Vec3f n = (B * model->normal(uv)).normalize();
 
-        // diffuse¹âÕÕ
+        // æ‹¡æ•£å…‰ç…§æ˜è¨ˆç®—
         float diff = std::max(0.f, n * light_dir);
         color = model->diffuse(uv) * diff;
 
-        // ÊÇ·ñÉáÆúµ±Ç°Æ¬¶Î
+        // ãƒ•ãƒ©ã‚°ãƒ¡ãƒ³ãƒˆç ´æ£„åˆ¤å®šï¼ˆå¸¸ã«æç”»ï¼‰
         return false;
     }
 };
