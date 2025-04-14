@@ -1,7 +1,32 @@
+
 # TinyRenderer
-Learning how GPU works by implementing a rasterizer in CPU
 
+‌**概要**‌  
+CPUを使用してGPUのグラフィックスレンダリング機能を実現するソフトウェアラスタライザー(Software Rasterizer)。
 
-obj/african_head/african_head.obj
-obj/diablo3_pose/diablo3_pose.obj
-obj/boggie/body.obj obj/boggie/eyes.obj obj/boggie/head.obj
+‌**技術スタック**‌
+
+-   ‌**プログラミング言語**‌: C++
+-   ‌**理論基盤**‌: グラフィックス学、数学
+-   ‌**パフォーマンス最適化**‌: VS Performance Profiler
+-   ‌**デバッグツール**‌: VS Debugger、Photoshop
+
+‌**プロジェクト構成**‌
+
+-   ‌**Referrence**‌ - 参考文献（数学式の導出プロセスを含む）
+-   ‌**Lesson 0: Getting Started**‌ - TGA形式のグラフィック出力
+-   ‌**Lesson 1: Bresenham’s Line Drawing Algorithm**‌ - ブレゼンハムの線描画アルゴリズム
+-   ‌**Lesson 2: Triangle Rasterization and Back Face Culling**‌ - 三角形ラスタライゼーションおよびシンプルな面カリング
+-   ‌**Lesson 3: Hidden Faces Removal (Z Buffer)** - 三角形ラスタライゼーションおよびシンプルな面カリング
+-   ‌**Lesson 4: Perspective Projection**‌ - 透視投影
+-   ‌**Lesson 5: Moving the Camera**‌ - カメラの移動制御
+-   ‌**Lesson 6: Shaders for the Software Renderer**‌ - 頂点シェーダーとフラグメントシェーダーの実装
+-   ‌**Lesson 6bis: Tangent Space Normal Mapping**‌ - 接空間法線マッピング
+-   ‌**Lesson 7: Shadow Mapping**‌ - シャドウマッピング
+-   ‌**Lesson 8: Ambient Occlusion**‌ - アンビエントオクルージョン
+
+‌**実行方法**‌  
+Visual Studio 2022で該当プロジェクトの`.sln`ファイルを開き、コンパイル後、VS 2022のデバッガーで実行します。
+
+‌**連絡先**‌  
+koalahjf@gmail.com
