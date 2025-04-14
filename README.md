@@ -13,7 +13,7 @@ CPUを使用してGPUのグラフィックスレンダリング機能を実現�
 
 ‌**プロジェクト構成**‌
 
--   ‌**Referrence**‌ - 参考文献（数学式の導出プロセスを含む）
+-   ‌**Referrence**‌ - 参考文献（自分で数学式の導出プロセスも含む）
 -   ‌**Lesson 0: Getting Started**‌ - TGA形式のグラフィック出力
 -   ‌**Lesson 1: Bresenham’s Line Drawing Algorithm**‌ - ブレゼンハムの線描画アルゴリズム
 -   ‌**Lesson 2: Triangle Rasterization and Back Face Culling**‌ - 三角形ラスタライゼーションおよびシンプルな面カリング
