@@ -2,7 +2,8 @@
 # Software Rasterizer
 
 ‌**概要**‌  
-CPUを使用してGPUのグラフィックスレンダリング機能を実現するソフトウェアラスタライザー(Software Rasterizer)。
+グラフィックスAPIを一切使わず、コンピュータグラフィックス理論と数学だけで実装したラスタライザー。
+GPUではなくCPU上で動作するソフトウェアラスタライザー(Software Rasterizer)。
 
 ‌**技術スタック**‌
 
