@@ -1,5 +1,5 @@
 
-# TinyRenderer
+# Software Rasterizer
 
 ‌**概要**‌  
 CPUを使用してGPUのグラフィックスレンダリング機能を実現するソフトウェアラスタライザー(Software Rasterizer)。
