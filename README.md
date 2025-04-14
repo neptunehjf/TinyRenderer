@@ -28,5 +28,13 @@ CPUを使用してGPUのグラフィックスレンダリング機能を実現�
 ‌**実行方法**‌  
 Visual Studio 2022で該当プロジェクトの`.sln`ファイルを開き、コンパイル後、VS 2022のデバッガーで実行します。
 
+‌**例**‌  
+![image](https://github.com/user-attachments/assets/1245db56-67a8-4b16-afa5-80e58e60c745)
+![image](https://github.com/user-attachments/assets/28b003bf-7cfc-4d82-a07b-7d3bdfe5a6fc)
+![image](https://github.com/user-attachments/assets/4027e35c-b7fe-462c-8574-e2823f04de53)
+
+
+
+
 ‌**連絡先**‌  
 koalahjf@gmail.com
