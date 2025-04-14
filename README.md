@@ -8,7 +8,7 @@ CPUを使用してGPUのグラフィックスレンダリング機能を実現�
 
 -   ‌**プログラミング言語**‌: C++
 -   ‌**理論基盤**‌: グラフィックス学、数学
--   ‌**パフォーマンス最適化**‌: bounding box、Bresenhamなど
+-   ‌**パフォーマンス最適化**‌: Bounding Box、Bresenhamなど
 -   ‌**ツール**‌: VS Performance Profiler、VS Debugger、Photoshopなど
 
 ‌**プロジェクト構成**‌
