@@ -9,9 +9,8 @@ GPUではなくCPU上で動作するソフトウェアラスタライザー(Soft
 ‌**技術スタック**‌
 
 -   ‌**プログラミング言語**‌: C++
--   ‌**理論基盤**‌: グラフィックス学、数学
--   ‌**パフォーマンス最適化**‌: Bounding Box、Bresenhamなど
--   ‌**ツール**‌: VS Performance Profiler、VS Debugger、Photoshopなど
+-   ‌**理論基盤**‌: グラフィックス学、数学、物理、信号画像処理
+-   ‌**ツール**‌: Visual Studio2022、Photoshopなど
 
 ‌**プロジェクト構成**‌
 
