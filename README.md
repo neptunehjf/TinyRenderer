@@ -36,25 +36,25 @@ GPUではなくCPU上で動作するソフトウェアラスタライザー(Soft
 
 ‌**成果画像の例**‌  
 -  ブレゼンハムの線描画 
-<img src="https://github.com/user-attachments/assets/f1409e7c-a07e-4cd8-96b6-cd293e05ec2e" width="800px" />
+<img src="https://github.com/user-attachments/assets/f1409e7c-a07e-4cd8-96b6-cd293e05ec2e" width="600px" />
 <br>
 <br>
 <br>
 
 -  Phong Shader
-<img src="https://github.com/user-attachments/assets/1245db56-67a8-4b16-afa5-80e58e60c745" width="800px" />
+<img src="https://github.com/user-attachments/assets/1245db56-67a8-4b16-afa5-80e58e60c745" width="600px" />
 <br>
 <br>
 <br>
 
 -  UVマッピングとシャドウマッピング
-<img src="https://github.com/user-attachments/assets/28b003bf-7cfc-4d82-a07b-7d3bdfe5a6fc" width="800px" />
+<img src="https://github.com/user-attachments/assets/28b003bf-7cfc-4d82-a07b-7d3bdfe5a6fc" width="600px" />
 <br>
 <br>
 <br>
 
 -  アンビエントオクルージョン
-<img src="https://github.com/user-attachments/assets/4027e35c-b7fe-462c-8574-e2823f04de53" width="800px" />
+<img src="https://github.com/user-attachments/assets/4027e35c-b7fe-462c-8574-e2823f04de53" width="600px" />
 <br>
 <br>
 <br>
