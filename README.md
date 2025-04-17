@@ -14,9 +14,9 @@ GPUではなくCPU上で動作するソフトウェアラスタライザー(Soft
 
 ‌**プロジェクト構成**‌
 
--   ‌**Referrence**‌ - 参考文献（自分で数学式の導出プロセスも含む）
+-   ‌**Referrence**‌ - 参照資料（自分で数学式の導出プロセスも含む）
 -   ‌**Lesson 0: Getting Started**‌ - TGA形式のグラフィック出力
--   ‌**Lesson 1: Bresenham’s Line Drawing Algorithm**‌ - ブレゼンハムの線描画アルゴリズム
+-   ‌**Lesson 1: Bresenham’s Line Drawing Algorithm**‌ - ブレゼンハムの線描画アルゴリズム。各アルゴリズムの効率の比較。Bounding Box
 -   ‌**Lesson 2: Triangle Rasterization and Back Face Culling**‌ - 三角形ラスタライゼーションおよびシンプルな面カリング
 -   ‌**Lesson 3: Hidden Faces Removal (Z Buffer)** - 三角形ラスタライゼーションおよびシンプルな面カリング
 -   ‌**Lesson 4: Perspective Projection**‌ - 透視投影
@@ -31,14 +31,33 @@ GPUではなくCPU上で動作するソフトウェアラスタライザー(Soft
 ※ プロジェクトではgeometry、model、tgaimage三つのツールクラスについては、時間の都合上、自身で実装せず、チュートリアル提供のコードをそのまま流用しました。
 
 ‌**実行方法**‌  
-Visual Studio 2022で該当プロジェクトの`.sln`ファイルを開き、コンパイル後、VS 2022のデバッガーで実行します。
+-   画像が上書きされるのを防ぐため、実行前にプロジェクトディレクトリ内の既存画像を削除する必要があります
+-   Visual Studio 2022で該当プロジェクトの`.sln`ファイルを開き、コンパイル後、VS 2022のデバッガーで実行します。
 
 ‌**成果画像の例**‌  
-<img src="https://github.com/user-attachments/assets/f1409e7c-a07e-4cd8-96b6-cd293e05ec2e" width="500px" />
-<img src="https://github.com/user-attachments/assets/1245db56-67a8-4b16-afa5-80e58e60c745" width="500px" />
-<img src="https://github.com/user-attachments/assets/28b003bf-7cfc-4d82-a07b-7d3bdfe5a6fc" width="500px" />
-<img src="https://github.com/user-attachments/assets/4027e35c-b7fe-462c-8574-e2823f04de53" width="500px" />
+-  ブレゼンハムの線描画 
+<img src="https://github.com/user-attachments/assets/f1409e7c-a07e-4cd8-96b6-cd293e05ec2e" width="800px" />
+<br>
+<br>
+<br>
 
+-  Phong Shader
+<img src="https://github.com/user-attachments/assets/1245db56-67a8-4b16-afa5-80e58e60c745" width="800px" />
+<br>
+<br>
+<br>
+
+-  UVマッピングとシャドウマッピング
+<img src="https://github.com/user-attachments/assets/28b003bf-7cfc-4d82-a07b-7d3bdfe5a6fc" width="800px" />
+<br>
+<br>
+<br>
+
+-  アンビエントオクルージョン
+<img src="https://github.com/user-attachments/assets/4027e35c-b7fe-462c-8574-e2823f04de53" width="800px" />
+<br>
+<br>
+<br>
 
 ‌**連絡先**‌  
 koalahjf@gmail.com
